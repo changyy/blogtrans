@@ -3,6 +3,7 @@ import codecs
 
 import re
 from datetime import datetime
+from datetime import timedelta
 
 from blogtrans.data import *
 import string
@@ -17,6 +18,12 @@ def parse_date(date_str) :
         try:
             return datetime.strptime(date_str, "%m/%d/%Y %I:%M:%S %p")
         except:
+            if re.compile("\d\d/\d\d/\d\d\d\d \d\d:\d\d:\d\d [AP][M]").match(date_str) :
+                date_str = date_str[:22]
+                if date_str.find("AM") <> -1:
+                    return datetime.strptime(date_str[:-3], "%m/%d/%Y %H:%M:%S")
+                else:
+                    return datetime.strptime(date_str[:-3], "%m/%d/%Y %H:%M:%S") + timedelta(0, 0, 0, 0, 0, 8)
             return datetime.strptime(date_str, "%m/%d/%Y %H:%M:%S")
     try:
         return datetime.strptime(date_str, "%m/%d/%y %I:%M:%S %p")
