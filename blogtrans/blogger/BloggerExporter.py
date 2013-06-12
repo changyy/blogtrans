@@ -117,6 +117,8 @@ class BloggerExporter :
             aid = i + 1
             if aid < self.aid_begin or aid > self.aid_end:
                 print "Skip:" + str(aid) + " / ( " + str(self.aid_begin) + ", " + str(self.aid_end) + " )"
+                print "\tArticle ID: " + str(aid)
+                print "\tArticle Title: " + str(a.title.encode('utf8'))
                 continue
 
             entry = SubElement(feed, "entry")
@@ -138,6 +140,7 @@ class BloggerExporter :
 
             title = SubElement(entry, "title")
             title.attrib["type"]="text"
+            #title.text = unicode(a.title.encode('utf8'), 'utf-8') #a.title
             title.text = a.title
 
             content = SubElement(entry, "content")
@@ -149,11 +152,13 @@ class BloggerExporter :
             link.attrib["rel"]="alternate"
             link.attrib["type"]="text/html"
             link.attrib["href"]="http://"+str(self.blogid)+".blogspot.com/"+a.date.strftime("%Y/%m")+"/"+str(urllib.quote_plus(a.title.encode('utf8')))+".html" #"http://tesafsdfa.blogspot.com/2008/09/test1.html"
-            link.attrib["title"]="test1"
-            
-            print "Article ID: " + str(aid)
-            print "Article Title: " + str(a.title.encode('utf8'))
-            print "Article URL: "+link.attrib["href"]
+            #link.attrib["title"]="test1" #str(a.title.encode('utf8'))
+            #link.attrib["title"]=unicode(a.title.encode('utf8'), 'utf-8')
+            link.attrib["title"]=a.title
+
+            print "@ Article ID: " + str(aid)
+            print "  Article Title: " + str(a.title.encode('utf8'))
+            print "  Article URL: "+link.attrib["href"]
 
             link = SubElement(entry, "link")
             link.attrib["rel"]="self"
