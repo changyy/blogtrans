@@ -7,6 +7,7 @@ except:
 
 from datetime import datetime
 from blogtrans.data import *
+import urllib
 
 def blogger_label(str) :
     result = u""
@@ -66,9 +67,14 @@ def make_comment_task(feed, c, aid) :
     return lambda cid : write_comment(feed, c, aid, cid)
 
 class BloggerExporter :
-    def __init__(self, filename, blogdata) :
+    def __init__(self, filename, blogdata, blogid, author, aid_begin, aid_end, skip_comment = False) :
         self.filename = filename
         self.blogdata = blogdata
+        self.blogid = blogid
+	self.author = author
+        self.aid_begin = aid_begin
+        self.aid_end = aid_end
+        self.skip_comment = skip_comment
 
     def Export(self) :
         comment_tasks = []
@@ -80,7 +86,7 @@ class BloggerExporter :
 
         SubElement(feed, "id").text = "tag:blogger.com,1999:blog-1.archive"
         SubElement(feed, "updated").text = "2008-09-10T10:44:09.799-07:00"
-        SubElement(feed, "title").text = "test123456"
+        SubElement(feed, "title").text = "Notitle"
 
         link = SubElement(feed, "link")
         link.attrib["rel"]="http://schemas.google.com/g/2005#feed"
@@ -90,7 +96,7 @@ class BloggerExporter :
         link = SubElement(feed, "link")
         link.attrib["rel"]="alternate"
         link.attrib["type"]="text/html"
-        link.attrib["href"]="http://test123456.blogspot.com"
+        link.attrib["href"]="http://"+str(self.blogid)+".blogspot.com" #"http://test123456.blogspot.com"
 
         link = SubElement(feed, "link")
         link.attrib["rel"]="self"
@@ -98,7 +104,7 @@ class BloggerExporter :
         link.attrib["href"]="http://www.blogger.com/feeds/1/archive"
 
         author = SubElement(feed, "author")
-        SubElement(author, "name").text = "test123456"
+        SubElement(author, "name").text = self.author #"test123456"
         SubElement(author, "uri").text = "http://www.blogger.com/profile/1"
         SubElement(author, "email").text = "noreply@blogger.com"
 
@@ -109,6 +115,9 @@ class BloggerExporter :
 
         for i, a in enumerate(self.blogdata.articles) :
             aid = i + 1
+            if aid < self.aid_begin or aid > self.aid_end:
+                print "Skip:" + str(aid) + " / ( " + str(self.aid_begin) + ", " + str(self.aid_end) + " )"
+                continue
 
             entry = SubElement(feed, "entry")
             SubElement(entry, "id").text = "tag:blogger.com,1999:blog-1.post-" + str(aid)
@@ -139,8 +148,12 @@ class BloggerExporter :
             link = SubElement(entry, "link")
             link.attrib["rel"]="alternate"
             link.attrib["type"]="text/html"
-            link.attrib["href"]="http://tesafsdfa.blogspot.com/2008/09/test1.html"
+            link.attrib["href"]="http://"+str(self.blogid)+".blogspot.com/"+a.date.strftime("%Y/%m")+"/"+str(urllib.quote_plus(a.title.encode('utf8')))+".html" #"http://tesafsdfa.blogspot.com/2008/09/test1.html"
             link.attrib["title"]="test1"
+            
+            print "Article ID: " + str(aid)
+            print "Article Title: " + str(a.title.encode('utf8'))
+            print "Article URL: "+link.attrib["href"]
 
             link = SubElement(entry, "link")
             link.attrib["rel"]="self"
@@ -148,15 +161,16 @@ class BloggerExporter :
             link.attrib["href"]="http://www.blogger.com/feeds/1/posts/default/" + str(aid)
 
             author = SubElement(entry, "author")
-            SubElement(author, "name").text = "test123456"
+            SubElement(author, "name").text = self.author #"test123456"
             SubElement(author, "uri").text = "http://www.blogger.com/profile/1"
             SubElement(author, "email").text = "noreply@blogger.com"
             for c in a.comments :
                 task = make_comment_task(feed, c, aid)
                 comment_tasks.append(task)
 
-        for i, task in enumerate(comment_tasks):
-            cid = i + 1
-            task(cid)
+        if self.skip_comment <> True:
+            for i, task in enumerate(comment_tasks):
+                 cid = i + 1
+                 task(cid)
 
         ElementTree(feed).write(self.filename, "utf-8")

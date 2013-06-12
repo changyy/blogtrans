@@ -187,6 +187,43 @@ class MainWindow(wx.Frame):
 
     def OnExportBlogger(self, e) :
         checked_data = self.GetCheckedBlogData()
+
+        dialog = wx.TextEntryDialog(self, "http://BloggerID.blogspot.tw", "Blogger ID", "changyy")
+        result = dialog.ShowModal()
+        dialog.Destroy()
+        if result != wx.ID_OK :
+            return
+        target_blogger_id = dialog.GetValue()
+
+        dialog = wx.TextEntryDialog(self, "Author", "Author", "Yuan-Yi Chang")
+        result = dialog.ShowModal()
+        dialog.Destroy()
+        if result != wx.ID_OK :
+            return
+        target_author = dialog.GetValue()
+
+        dialog = wx.NumberEntryDialog(self, "Article Begin Number", "Begin Number:", "Article Begin Number", 1, 1, 99999999)
+        result = dialog.ShowModal()
+        dialog.Destroy()
+        if result != wx.ID_OK :
+            return
+        target_aid_begin = dialog.GetValue()
+
+        dialog = wx.NumberEntryDialog(self, "Article End Number", "End Number:", "Article End Number", 99999, 1, 99999999)
+        result = dialog.ShowModal()
+        dialog.Destroy()
+        if result != wx.ID_OK :
+            return
+        target_aid_end = dialog.GetValue()
+
+        dialog = wx.MessageDialog(self, "Skip all Comments ?", "remove all comment:", wx.YES_NO | wx.NO_DEFAULT)
+        result = dialog.ShowModal()
+        dialog.Destroy()
+        if result == wx.ID_NO:
+             target_skip_comment = False
+        else:
+             target_skip_comment = True
+
         dialog = wx.FileDialog(self, style=wx.SAVE|wx.OVERWRITE_PROMPT)
         result = dialog.ShowModal()
         dialog.Destroy()
@@ -197,11 +234,10 @@ class MainWindow(wx.Frame):
         dir = dialog.GetDirectory()
         filename = os.path.join(dir, file)
 
-        me = BloggerExporter(filename, checked_data)
+        me = BloggerExporter(filename, checked_data, target_blogger_id, target_author, target_aid_begin, target_aid_end, target_skip_comment)
         me.Export()
 
     def OnImportBlogger(self, e) :
-        print "hi"
         dialog = wx.FileDialog(self)
         result = dialog.ShowModal()
         dialog.Destroy()
